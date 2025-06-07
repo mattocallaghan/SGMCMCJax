@@ -103,7 +103,6 @@ def progress_bar_scan(num_samples: int, message: Union[None, str] = None) -> Cal
         "Updates tqdm progress bar of a JAX scan or loop"
         _ = lax.cond(
             iter_num == 0,
-            id_tap(_define_tqdm, print_rate, result=iter_num)
             lambda _: io_callback( _define_tqdm, None, print_rate),
             lambda _: (),
             operand=None,
