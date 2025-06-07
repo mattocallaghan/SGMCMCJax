@@ -89,35 +89,36 @@ def progress_bar_scan(num_samples: int, message: Union[None, str] = None) -> Cal
         message = f"Running for {num_samples:,} iterations"
     tqdm_bars = {}
 
-    def _define_tqdm(arg, transform):
+    def _define_tqdm(arg):
         tqdm_bars[0] = tqdm(range(num_samples))
         tqdm_bars[0].set_description(message, refresh=False)
 
-    def _update_tqdm(arg, transform):
+    def _update_tqdm(arg):
         tqdm_bars[0].update(arg)
 
-    def _close_tqdm(arg, transform):
+    def _close_tqdm(arg):
         tqdm_bars[0].close()
 
     def _update_progress_bar(iter_num, print_rate):
         "Updates tqdm progress bar of a JAX scan or loop"
         _ = lax.cond(
             iter_num == 0,
-            lambda _: io_callback(_define_tqdm, (), jnp.int32(print_rate)),
+            id_tap(_define_tqdm, print_rate, result=iter_num)
+            lambda _: io_callback( _define_tqdm, None, print_rate),
             lambda _: (),
             operand=None,
         )
     
         _ = lax.cond(
             (iter_num % print_rate) == 0,
-            lambda _: io_callback(_update_tqdm, (), jnp.int32(1)),
+            lambda _: io_callback(_update_tqdm, None, print_rate)),
             lambda _: (),
             operand=None,
         )
     
         _ = lax.cond(
             iter_num == (num_samples - 1),
-            lambda _: io_callback(_close_tqdm, (), jnp.int32(0)),  # pass dummy value
+            lambda _: io_callback(_close_tqdm, None, print_rate),  # pass dummy value
             lambda _: (),
             operand=None,
         )
