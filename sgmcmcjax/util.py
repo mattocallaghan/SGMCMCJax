@@ -2,7 +2,7 @@ from typing import Any, Callable, Iterable, Tuple, Union
 
 import jax.numpy as jnp
 from jax import grad, jit, lax, value_and_grad, vmap
-from jax.experimental import host_callback
+from jax.experimental import io_callback
 from tqdm.auto import tqdm
 
 
@@ -103,21 +103,22 @@ def progress_bar_scan(num_samples: int, message: Union[None, str] = None) -> Cal
         "Updates tqdm progress bar of a JAX scan or loop"
         _ = lax.cond(
             iter_num == 0,
-            lambda _: host_callback.id_tap(_define_tqdm, print_rate, result=iter_num),
+            
+            lambda _: io_callback(_define_tqdm, None, print_rate)
             lambda _: iter_num,
             operand=None,
         )
 
         _ = lax.cond(
             iter_num % print_rate == 0,
-            lambda _: host_callback.id_tap(_update_tqdm, print_rate, result=iter_num),
+            lambda _: io_callback(_define_tqdm, None, print_rate)            
             lambda _: iter_num,
             operand=None,
         )
 
         _ = lax.cond(
             iter_num == num_samples - 1,
-            lambda _: host_callback.id_tap(_close_tqdm, print_rate, result=iter_num),
+            lambda _: io_callback(_define_tqdm, None, print_rate)            
             lambda _: iter_num,
             operand=None,
         )
