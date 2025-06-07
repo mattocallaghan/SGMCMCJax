@@ -111,7 +111,7 @@ def progress_bar_scan(num_samples: int, message: Union[None, str] = None) -> Cal
     
         _ = lax.cond(
             (iter_num % print_rate) == 0,
-            lambda _: io_callback(_update_tqdm, None, print_rate)),
+            lambda _: io_callback(_update_tqdm, None, print_rate),
             lambda _: (),
             operand=None,
         )
